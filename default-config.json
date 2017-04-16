@@ -1,0 +1,13 @@
+{
+  "router": {
+    "addr": "",
+    "username": "",
+    "password": ""
+  },
+  "cloudflare": {
+    "email": "",
+    "apikey": "",
+    "zoneid": "",
+    "dns": []
+  }
+}

@@ -29,12 +29,12 @@ func LoadServiceConfig() *ServiceConfig {
   log.Println("Loading service config")
   sysfile, err := os.Open("config.json")
   if err != nil {
-    log.Fatalln("Error opening config.json:", err)
+    log.Fatalln(err)
   }
 
   defer sysfile.Close()
   if err = json.NewDecoder(sysfile).Decode(config); err != nil {
-    log.Fatalln("Error decoding config.json:", err)
+    log.Fatalln(err)
   }
   return config
 }
