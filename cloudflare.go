@@ -28,8 +28,8 @@ func NewCloudflareClient(email, key string) CloudflareClient {
   return CloudflareClient{client: &http.Client{}, email: email, key: key}
 }
 
-func (client *CloudflareClient) ListDNSRecords(zone string) ([]DNSRecord, bool) {
-  req, err := http.NewRequest("get", fmt.Sprintf("%s/zones/%s/dns_records", cloudflare_endpoint, zone), nil)
+func (client *CloudflareClient) ListDNSRecords(zone string) (map[string]*DNSRecord, bool) {
+  req, err := http.NewRequest("GET", fmt.Sprintf("%s/zones/%s/dns_records", cloudflare_endpoint, zone), nil)
   if err != nil {
     log.Println("Error on NewRequest:", err)
     return nil, false
@@ -48,11 +48,16 @@ func (client *CloudflareClient) ListDNSRecords(zone string) ([]DNSRecord, bool) 
     Success bool `json:"success"`
     Result []DNSRecord `json:"result"`
   }
-  if err = json.NewDecoder(resp.Body).Decode(json_resp); err != nil {
+  if err = json.NewDecoder(resp.Body).Decode(&json_resp); err != nil {
     log.Println("Error decoding response:", err)
     return nil, false
   }
-  return json_resp.Result, json_resp.Success
+
+  result := make(map[string]*DNSRecord)
+  for _, v := range json_resp.Result {
+    result[v.Name] = &v
+  }
+  return result, json_resp.Success
 }
 
 func (client *CloudflareClient) UpdateDNSRecord(zone string, record DNSRecord) bool {
@@ -72,7 +77,7 @@ func (client *CloudflareClient) UpdateDNSRecord(zone string, record DNSRecord) b
     return false
   }
 
-  req, err := http.NewRequest("put", fmt.Sprintf("%s/zones/%s/dns_records/%s", cloudflare_endpoint, zone, record.Id), &req_content)
+  req, err := http.NewRequest("PUT", fmt.Sprintf("%s/zones/%s/dns_records/%s", cloudflare_endpoint, zone, record.Id), &req_content)
   if err != nil {
     log.Println("Error newrequest:", err)
     return false

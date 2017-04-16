@@ -12,19 +12,23 @@ type NetClient struct {
   buffer []byte
   bytes  int
   conn   net.Conn
+  addr   string
 }
 
-func NewNetClient(address string) NetClient {
-  var client NetClient
+func NewNetClient(addr string) NetClient {
+  return NetClient{buffer: make([]byte, 2048), addr: addr}
+}
+
+func (client *NetClient) Connect() bool {
   var err error
 
-  log.Println("Connecting to", address)
-  client.conn, err = net.DialTimeout("tcp", address, time.Second)
+  log.Println("Connecting to", client.addr)
+  client.conn, err = net.DialTimeout("tcp", client.addr, time.Second)
   if err != nil {
-    log.Fatal(err)
+    log.Println(err)
+    return false
   }
-  client.buffer = make([]byte, 2048)
-  return client
+  return client.Handshake()
 }
 
 func (client *NetClient) Read() bool {
