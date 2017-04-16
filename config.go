@@ -21,6 +21,7 @@ type CloudflareConfig struct {
 type ServiceConfig struct {
   RouterConfig `json:"router"`
   CloudflareConfig `json:"cloudflare"`
+  UpdateSleep int `json:"update"`
 }
 
 func LoadServiceConfig() *ServiceConfig {

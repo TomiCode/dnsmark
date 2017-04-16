@@ -49,7 +49,7 @@ func main() {
     log.Fatalln("No dns record list :(")
   }
 
-  ticker := time.NewTicker(time.Second * 20)
+  ticker := time.NewTicker(time.Duration(config.UpdateSleep) * time.Minute)
   for {
     log.Println("Starting update task..")
     router.Update(config)
@@ -70,7 +70,7 @@ func main() {
       }
     }
 
-    log.Println("Sleeping for next task")
+    log.Println("Next update occurs after", config.UpdateSleep, "minutes")
     <-ticker.C
   }
 }
