@@ -15,7 +15,7 @@ type CloudflareConfig struct {
   Key string `json:"apikey"`
 
   ZoneId string `json:"zoneid"`
-  Domains []string `json:"domains"`
+  Dns []string `json:"dns"`
 }
 
 type ServiceConfig struct {
@@ -31,7 +31,7 @@ func LoadServiceConfig() *ServiceConfig {
   if err != nil {
     log.Fatalln("Error opening config.json:", err)
   }
-  
+
   defer sysfile.Close()
   if err = json.NewDecoder(sysfile).Decode(config); err != nil {
     log.Fatalln("Error decoding config.json:", err)
