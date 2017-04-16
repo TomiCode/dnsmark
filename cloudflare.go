@@ -26,13 +26,13 @@ type DNSRecord struct {
 
 type DNSRecordList []DNSRecord
 
-func (list DNSRecordList) Record(name string) (*DNSRecord, bool) {
-  for _, record := range list {
+func (list *DNSRecordList) Record(name string) (int, bool) {
+  for index, record := range *list {
     if record.Name == name {
-      return &record, true
+      return index, true
     }
   }
-  return nil, false
+  return -1, false
 }
 
 func NewCloudflareClient(email, key string) CloudflareClient {

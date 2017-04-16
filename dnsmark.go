@@ -49,7 +49,7 @@ func main() {
     log.Fatalln("No dns record list :(")
   }
 
-  ticker := time.NewTicker(time.Minute)
+  ticker := time.NewTicker(time.Second * 20)
   for {
     log.Println("Starting update task..")
     router.Update(config)
@@ -61,11 +61,11 @@ func main() {
         continue
       }
 
-      if entry.Content != router.RemoteAddr {
-        log.Println("Updating", entry.Name, "from", entry.Content, "to", router.RemoteAddr)
-        entry.Content = router.RemoteAddr
-        if !cf_client.UpdateDNSRecord(config.CloudflareConfig.ZoneId, entry) {
-          log.Println("Update", entry.Name, "failed!")
+      if dns_list[entry].Content != router.RemoteAddr {
+        log.Println("Updating", dns_list[entry].Name, "from", dns_list[entry].Content, "to", router.RemoteAddr)
+        dns_list[entry].Content = router.RemoteAddr
+        if !cf_client.UpdateDNSRecord(config.CloudflareConfig.ZoneId, &dns_list[entry]) {
+          log.Println("Update", dns_list[entry].Name, "failed!")
         }
       }
     }
