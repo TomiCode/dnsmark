@@ -23,7 +23,7 @@ func (client *NetClient) Connect() bool {
   var err error
 
   log.Println("Connecting to", client.addr)
-  client.conn, err = net.DialTimeout("tcp", client.addr, time.Second)
+  client.conn, err = net.Dial("tcp", client.addr)
   if err != nil {
     log.Println(err)
     return false
@@ -34,6 +34,7 @@ func (client *NetClient) Connect() bool {
 func (client *NetClient) Read() bool {
   var err error = nil
 
+  client.conn.SetReadDeadline(time.Now().Add(2 * time.Second))
   if client.bytes, err = client.conn.Read(client.buffer); err != nil {
     log.Println(err)
     return false
@@ -79,7 +80,6 @@ func (client *NetClient) Handshake() bool {
   if !client.Write([]byte{0xff, 0xfe, 0x01, 0xff, 0xfb, 0x03, 0xff, 0xfd, 0x03}) {
     return false
   }
-  
   client.Read()
   return true
 }
@@ -95,7 +95,7 @@ func (client *NetClient) Auth(user, pass string) bool {
     return false
   }
 
-  client.Read()
+  // client.Read()
   if !client.Read() {
     return false
   }

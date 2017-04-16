@@ -24,11 +24,22 @@ type DNSRecord struct {
   Locked  bool    `json:"locked"`
 }
 
+type DNSRecordList []DNSRecord
+
+func (list DNSRecordList) Record(name string) (*DNSRecord, bool) {
+  for _, record := range list {
+    if record.Name == name {
+      return &record, true
+    }
+  }
+  return nil, false
+}
+
 func NewCloudflareClient(email, key string) CloudflareClient {
   return CloudflareClient{client: &http.Client{}, email: email, key: key}
 }
 
-func (client *CloudflareClient) ListDNSRecords(zone string) (map[string]*DNSRecord, bool) {
+func (client *CloudflareClient) ListDNSRecords(zone string) (DNSRecordList, bool) {
   req, err := http.NewRequest("GET", fmt.Sprintf("%s/zones/%s/dns_records", cloudflare_endpoint, zone), nil)
   if err != nil {
     log.Println("Error on NewRequest:", err)
@@ -46,21 +57,17 @@ func (client *CloudflareClient) ListDNSRecords(zone string) (map[string]*DNSReco
 
   var json_resp struct {
     Success bool `json:"success"`
-    Result []DNSRecord `json:"result"`
+    Result DNSRecordList `json:"result"`
   }
+
   if err = json.NewDecoder(resp.Body).Decode(&json_resp); err != nil {
     log.Println("Error decoding response:", err)
     return nil, false
   }
-
-  result := make(map[string]*DNSRecord)
-  for _, v := range json_resp.Result {
-    result[v.Name] = &v
-  }
-  return result, json_resp.Success
+  return json_resp.Result, json_resp.Success
 }
 
-func (client *CloudflareClient) UpdateDNSRecord(zone string, record DNSRecord) bool {
+func (client *CloudflareClient) UpdateDNSRecord(zone string, record *DNSRecord) bool {
   var json_req = struct {
     Type string `json:"type"`
     Name string `json:"name"`
@@ -72,7 +79,7 @@ func (client *CloudflareClient) UpdateDNSRecord(zone string, record DNSRecord) b
   }
 
   var req_content bytes.Buffer
-  if err := json.NewEncoder(&req_content).Encode(json_req); err != nil {
+  if err := json.NewEncoder(&req_content).Encode(&json_req); err != nil {
     log.Println("Error encoding request:", err)
     return false
   }
@@ -95,7 +102,7 @@ func (client *CloudflareClient) UpdateDNSRecord(zone string, record DNSRecord) b
   var json_resp struct {
     Success bool `json:"success"`
   }
-  if err = json.NewDecoder(resp.Body).Decode(json_resp); err != nil {
+  if err = json.NewDecoder(resp.Body).Decode(&json_resp); err != nil {
     log.Println("Error decoding response:", err)
     return false
   }
